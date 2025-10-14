@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.response import Response
 from .models import role1,QA,Admin,accountent,product,product_details
 from rest_framework import status
-from .serializers  import role1Serializer
+from .serializers  import role1Serializer,product_detailsSerializer
 from rest_framework.decorators import api_view
 
 # Create your views here.
@@ -161,6 +161,46 @@ def add_product_details(request):
     },status=200)
 
 
+@api_view(['GET'])
+def get_product_details(request):
+    product_data=product_details.objects.all()
+    serializer =product_detailsSerializer(product_data,many=True)
+    return Response(serializer.data)
 
+@api_view(['PUT'])
+def update_product_status(request, id):
+    product_instance = product_details.objects.get(id=id)
 
+    if not product_instance:
+        return Response({"msg": "No data found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    product_instance.Company_name = request.data.get('Company_name', product_instance.Company_name)
+    product_instance.serial_number = request.data.get('serial_number', product_instance.serial_number)
+    product_instance.date = request.data.get('date', product_instance.date)
+    product_instance.Customer_name = request.data.get('Customer_name', product_instance.Customer_name)
+    product_instance.Customer_No = request.data.get('Customer_No', product_instance.Customer_No)
+    product_instance.Customer_date = request.data.get('Customer_date', product_instance.Customer_date)
+    product_instance.mobile = request.data.get('mobile', product_instance.mobile)
+    product_instance.material_Description = request.data.get('material_Description', product_instance.material_Description)
+    product_instance.Quantity=request.data.get('Quantity',product_instance.Quantity)
+    product_instance.Remarks = request.data.get('Remarks', product_instance.Remarks)
+    product_instance.size = request.data.get('size', product_instance.size)
+    product_instance.Thick = request.data.get('Thick', product_instance.Thick)
+    product_instance.Grade = request.data.get('Grade', product_instance.Grade)
+    product_instance.Drawing = request.data.get('Drawing', product_instance.Drawing)
+    product_instance.Test_Certificate = request.data.get('Test_Certificate', product_instance.Test_Certificate)
+    product_instance.status = request.data.get('status', product_instance.status)
+    product_instance.save()
+    serializer = product_detailsSerializer(product_instance)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
+    
+
+@api_view(['DELETE'])
+def delete_product(request, id):
+    product_instance = product_details.objects.get(id=id).delete()
+
+    if not product_instance:
+        return Response({"msg": "No data found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    return Response({"msg": "data deleted"}, status=status.HTTP_200_OK)
