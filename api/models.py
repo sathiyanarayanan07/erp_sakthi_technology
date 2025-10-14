@@ -71,6 +71,7 @@ class product_details(models.Model):
     Grade=models.BooleanField(default=False)
     Drawing=models.BooleanField(default=False)
     Test_Certificate=models.BooleanField(default=False)
-    
+    status=models.CharField(max_length=30,default="pending")
+
     def __str__(self):
         return f"{self.Company_name} -{self.serial_number}"

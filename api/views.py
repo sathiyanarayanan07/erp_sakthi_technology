@@ -117,6 +117,7 @@ def add_product_details(request):
     Grade=request.data.get("Grade")
     Drawing=request.data.get("Drawing")
     Test_Certificate=request.data.get("Test_Certificate")
+    status=request.data.get("status")
 
     try:
         product_data=product_details.objects.create(
@@ -134,7 +135,8 @@ def add_product_details(request):
             Thick=Thick,
             Grade=Grade,
             Drawing=Drawing,
-            Test_Certificate=Test_Certificate
+            Test_Certificate=Test_Certificate,
+            status="pending"
         )
     except product_details.DoesNotExist:
         return Response({"msg":"invalid data"},status=status.HTTP_400_BAD_REQUEST)
@@ -154,6 +156,11 @@ def add_product_details(request):
         "Thick":Thick,
         "Grade":Grade,
         "Drawing":Drawing,
-        "Test_Certificate":Test_Certificate
+        "Test_Certificate":Test_Certificate,
+        "status":"pending"
     },status=200)
+
+
+
+
 
