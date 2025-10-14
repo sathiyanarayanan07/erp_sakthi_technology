@@ -4,6 +4,7 @@ from django.db import models
 class role1(models.Model):
 
     username = models.CharField(max_length=30,null=True,blank=True)
+    email = models.EmailField(max_length=100,null=True,blank=True)
     password = models.CharField(max_length=30,null=True,blank=True)
     role_type = models.CharField(max_length=10,default="role1")
 
@@ -13,6 +14,7 @@ class role1(models.Model):
 class QA(models.Model):
 
     username = models.CharField(max_length=30,null=True,blank=True)
+    email = models.EmailField(max_length=100,null=True,blank=True)
     password = models.CharField(max_length=30,null=True,blank=True)
     role_type = models.CharField(max_length=10,default="QA")
 
@@ -23,6 +25,7 @@ class QA(models.Model):
 class product(models.Model):
 
     username = models.CharField(max_length=30,null=True,blank=True)
+    email = models.EmailField(max_length=100,null=True,blank=True)
     password = models.CharField(max_length=30,null=True,blank=True)
     role_type = models.CharField(max_length=10,default="product")
 
@@ -33,6 +36,7 @@ class product(models.Model):
 class accountent(models.Model):
 
     username = models.CharField(max_length=30,null=True,blank=True)
+    email = models.EmailField(max_length=100,null=True,blank=True)
     password = models.CharField(max_length=30,null=True,blank=True)
     role_type = models.CharField(max_length=10,default="accountent")
 
@@ -43,6 +47,7 @@ class accountent(models.Model):
 class Admin(models.Model):
 
     username = models.CharField(max_length=30,null=True,blank=True)
+    email = models.EmailField(max_length=100,null=True,blank=True)
     password = models.CharField(max_length=30,null=True,blank=True)
     role_type = models.CharField(max_length=10,default="Admin")
 
