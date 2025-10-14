@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from .models import role1,QA,Admin,accountent,product
+from .models import role1,QA,Admin,accountent,product,product_details
 from rest_framework import status
 from .serializers  import role1Serializer
 from rest_framework.decorators import api_view
@@ -100,3 +100,60 @@ def single_signup(request):
     }, status=200 )   
         
             
+@api_view(['POST'])
+def add_product_details(request):
+    Company_name=request.data.get("Company_name")
+    serial_number=request.data.get("serial_number")
+    date=request.data.get("date")
+    Customer_name=request.data.get("Customer_name")
+    Customer_No=request.data.get("Customer_No")
+    Customer_date=request.data.get("Customer_date")
+    material_Description=request.data.get("material_Description")
+    Quantity =request.data.get("Quantity")
+    mobile =request.data.get("mobile")
+    Remarks =request.data.get("Remarks")
+    size=request.data.get("size")
+    Thick=request.data.get("Thick")
+    Grade=request.data.get("Grade")
+    Drawing=request.data.get("Drawing")
+    Test_Certificate=request.data.get("Test_Certificate")
+
+    try:
+        product_data=product_details.objects.create(
+            Company_name=Company_name,
+            serial_number=serial_number,
+            date=date,
+            Customer_name=Customer_name,
+            Customer_No=Customer_No,
+            Customer_date=Customer_date,
+            material_Description=material_Description,
+            Quantity=Quantity,
+            mobile=mobile,
+            Remarks=Remarks,
+            size=size,
+            Thick=Thick,
+            Grade=Grade,
+            Drawing=Drawing,
+            Test_Certificate=Test_Certificate
+        )
+    except product_details.DoesNotExist:
+        return Response({"msg":"invalid data"},status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+        "msg":"data added successfully",
+        "Company_name":Company_name,
+        "serial_number":serial_number,
+        "date":date,
+        "Customer_name":Customer_name,
+        "Customer_No":Customer_No,
+        "Customer_date":Customer_date,
+        "material_Description":material_Description,
+        "Quantity":Quantity,
+        "mobile":mobile,
+        "Remarks":Remarks,
+        "size":size,
+        "Thick":Thick,
+        "Grade":Grade,
+        "Drawing":Drawing,
+        "Test_Certificate":Test_Certificate
+    },status=200)
+
