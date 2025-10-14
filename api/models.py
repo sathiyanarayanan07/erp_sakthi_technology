@@ -63,15 +63,57 @@ class product_details(models.Model):
     Customer_No = models.CharField(max_length=30,null=True,blank=True)
     Customer_date = models.DateField(null=True,blank=True)
     mobile = models.CharField(max_length=30,null=True,blank=True)
-    material_Description = models.CharField(max_length=100,null=True,blank=True)
-    Quantity = models.CharField(max_length=30,null=True,blank=True)
-    Remarks = models.CharField(max_length=100,null=True,blank=True)
-    size=models.BooleanField(default=False)
-    Thick=models.BooleanField(default=False)
-    Grade=models.BooleanField(default=False)
-    Drawing=models.BooleanField(default=False)
-    Test_Certificate=models.BooleanField(default=False)
-    status=models.CharField(max_length=30,default="pending")
+    status=models.CharField(max_length=30,null=True,blank=True)
 
     def __str__(self):
-        return f"{self.Company_name} -{self.serial_number}"
+        return f"{self.Company_name} -{self.serial_number}--{self.id}"
+    
+class product_material(models.Model):
+    product_detail=models.ForeignKey(product_details,on_delete=models.CASCADE,null=True,blank=True)
+    material_Description=models.CharField(max_length=100,null=True,blank=True)
+    Quantity =models.IntegerField(null=True,blank=True)
+    Remarks =models.CharField(max_length=100,null=True,blank=True)
+    
+
+    def __str__(self):
+        return f"{self.material_Description} -{self.Quantity}--{self.id}"    
+    
+class product_options(models.Model):
+    product_material=models.ForeignKey(product_material,on_delete=models.CASCADE,null=True,blank=True)
+    size=models.BooleanField(max_length=30,null=True,blank=True)
+    Thick=models.BooleanField(max_length=30,null=True,blank=True)
+    Grade=models.BooleanField(max_length=30,null=True,blank=True)
+    Drawing=models.BooleanField(max_length=30,null=True,blank=True)
+    Test_Certificate=models.BooleanField(max_length=30,null=True,blank=True)
+    def __str__(self):
+        return f"{self.size} -{self.Thick}--{self.Grade}"
+
+
+class plan_product(models.Model):
+    product_detail=models.ForeignKey(product_details,on_delete=models.CASCADE,null=True,blank=True)
+    program_no=models.CharField(max_length=30,null=True,blank=True)
+    lm_co1=models.BooleanField(default=False)
+    lm_co2=models.BooleanField(default=False)
+    lm_co3=models.BooleanField(default=False)
+    fm_co1=models.BooleanField(default=False)
+    fm_co2=models.BooleanField(default=False)
+    fm_co3=models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.program_no}"
+    
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.product_detail:
+            if all([
+                self.lm_co1, self.lm_co2, self.lm_co3,
+                self.fm_co1, self.fm_co2, self.fm_co3
+            ]):
+                self.product_detail.status = "complete"
+            else:
+                self.product_detail.status = "incomplete"
+            self.product_detail.save()
+            
+   

@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import role1,accountent,product,QA,Admin,product_details
-
+from .models import role1,accountent,product,QA,Admin,product_details,plan_product,product_material
+from .models import product_options
 # Register your models here.
 
 admin.site.register(role1)
@@ -13,3 +13,6 @@ admin.site.register(QA)
 
 admin.site.register(Admin)
 admin.site.register(product_details)
+admin.site.register(plan_product)
+admin.site.register(product_material)
+admin.site.register(product_options)
