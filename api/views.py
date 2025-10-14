@@ -53,7 +53,7 @@ def get_user_data(request):
     return Response(get)
 
 @api_view(['POST'])
-def single_signup(request):
+def admin_single_signup(request):
     username =request.data.get("username")
     email = request.data.get("email")
     password = request.data.get("password")
@@ -90,7 +90,7 @@ def single_signup(request):
             Admin.DoesNotExist, accountent.DoesNotExist):
         return Response({"msg": "Invalid username or password."}, status=status.HTTP_401_UNAUTHORIZED)
 
-    # Login successful
+ 
     return Response({
         "msg": "signup successful",
         "username": username,
@@ -98,5 +98,32 @@ def single_signup(request):
         "password":password,
         "role_type": role_type
     }, status=200 )   
+
+@api_view(['POST'])
+def logout(request):
+    username = request.data.get('username')
+    role_type = request.data.get("role_type")
+
+    if not username or not role_type:
+        return Response ({"msg":"username and roletype is not found"},status=200)
+    
+    if role_type == "role1":
+        role_1 = role1.objects.get(username=username)
+    elif role_type == "QA":
+        qa = QA.objects.get(username=username)
+    elif role_type == "product":
+        product_logout = product.objects.get(username=username)
+    elif role_type == "Admin":
+        admin = Admin.objects.get(username=username)
+    elif role_type == "accountent":
+        account = accountent.objects.get(username=username)
+    else:
+        return Response({"logout not successfully "},status=400)
+    return Response({
+    "msg":"logout successfully",
+    "username":username,
+    "role_type":role_type
+    })
         
             
+
