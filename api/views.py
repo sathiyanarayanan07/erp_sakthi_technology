@@ -54,10 +54,11 @@ def get_user_data(request):
     return Response(get)
 
 @api_view(['POST'])
-def single_signup(request):
+def admin_single_signup(request):
     username =request.data.get("username")
     email = request.data.get("email")
     password = request.data.get("password")
+
     role_type =request.data.get("role_type")
 
 
@@ -419,6 +420,7 @@ def product_qa_view(request):
     prod = []
     for ve in prod_view:
         prod.append({
+            "product_id":ve.id,
         "Company_name":ve.Company_name,
         "serial_number":ve.serial_number,
         "date":ve.date,
@@ -434,6 +436,7 @@ def product_qa_view(request):
     qa_details = []
     for qv in qa_view:
         qa_details.append({
+            "product_id": qv.product_detail.id if qv.product_detail else None,
             "program_no": qv.program_no,
             "lm_co1": qv.lm_co1,
             "lm_co2": qv.lm_co2,
