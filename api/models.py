@@ -99,6 +99,7 @@ class plan_product(models.Model):
     fm_co1=models.BooleanField(default=False)
     fm_co2=models.BooleanField(default=False)
     fm_co3=models.BooleanField(default=False)
+    status = models.CharField(max_length=20,default="incomplete")
 
     def __str__(self):
         return f"{self.program_no}"
