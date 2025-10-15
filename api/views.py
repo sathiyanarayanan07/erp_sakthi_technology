@@ -454,6 +454,45 @@ def product_qa_view(request):
                     })
 
 
+@api_view(['POST'])
+def add_account(request):
+    inv_on = request.data.get("inv_on")
+    Date = request.data.get("Date")
+    Amount = request.data.get("Amount")
+    mode_of_pay = request.data.get("mode_of_pay")
+    mat_inspected = request.data.get("mat_inspected")
+    mat_received = request.data.get("mat_received")
+    process_plan = request.data.get("process_plan")
+    process_approve = request.data.get("process_approve")
+    remark = request.data.get("remark")
+
+    if not inv_on or not Date or not Amount or not mode_of_pay or not mat_inspected or not mat_received or  not process_plan or not process_approve or not remark:
+        return Response({"msg":"data not found"})
+    
+    acc = account_page.objects.create(
+        inv_on=inv_on,
+        Date=Date,
+        Amount=Amount,
+        mode_of_pay=mode_of_pay,
+        mat_inspected=mat_inspected,
+        mat_received=mat_received,
+        process_plan=process_plan,
+        process_approve=process_approve,
+        remark=remark
+
+    )
+    return Response({
+        "msg":"account page create successfully",
+        "inv_on":inv_on,
+        "Date":Date,
+        "Amount":Amount,
+        "mode_of_pay":mode_of_pay,
+        "mat_inspected":mat_inspected,
+        "mat_received":mat_received,
+        "process_plan":process_plan,
+        "process_approve":process_approve,
+        "remark":remark
+        },status=200)
 
 
     
