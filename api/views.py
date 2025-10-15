@@ -405,6 +405,49 @@ def Schedule_view(request):
                     "remark":show.remark
                 })
         return Response(view)
+    
+@api_view(["GET"])
+def product_qa_view(request):
+    prod_view = product_details.objects.all()
+    if not prod_view:
+        return Response({"msg":"prod not found"},status=400)
+    
+    qa_view =plan_product.objects.all()
+    if not qa_view:
+        return Response({"msg":"qa not found"},status=400)
+    
+    prod = []
+    for ve in prod_view:
+        prod.append({
+        "Company_name":ve.Company_name,
+        "serial_number":ve.serial_number,
+        "date":ve.date,
+        "Customer_name":ve.Customer_name,
+        "Customer_No":ve.Customer_No,
+        "Customer_date":ve.Customer_date,
+        "mobile":ve.mobile,
+        "status":ve.status
+            
+
+        })
+
+    qa_details = []
+    for qv in qa_view:
+        qa_details.append({
+            "program_no": qv.program_no,
+            "lm_co1": qv.lm_co1,
+            "lm_co2": qv.lm_co2,
+            "lm_co3": qv.lm_co3,
+            "fm_co1": qv.fm_co1,
+            "fm_co2": qv.fm_co2,
+            "fm_co3": qv.fm_co3,
+        })
+
+    
+    return Response({"msg":"all details view successfully",
+                    "product":prod,
+                    "qa":qa_details
+                    })
 
 
 
