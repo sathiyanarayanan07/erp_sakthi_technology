@@ -444,6 +444,7 @@ def product_qa_view(request):
             "fm_co1": qv.fm_co1,
             "fm_co2": qv.fm_co2,
             "fm_co3": qv.fm_co3,
+             "status":qv.status
         })
 
     
