@@ -515,6 +515,24 @@ def account_view(request):
                     "remark":show.remark
                 })
         return Response(view)
+#admin page
+@api_view(['GET'])
+def get_role_count(request):
+    count_role =role1.objects.count()
+    count_qa =QA.objects.count()
+    count_product =product.objects.count()
+    count_accountent=accountent.objects.count()
+    return Response({"count":count_role,
+                     "count_QA":count_qa,
+                     "count_product":count_product,
+                     "count_accountent":count_accountent
+                     },status=200)
+
+@api_view(['GET'])
+def total_product(request):
+    count_product=product_details.objects.count()
+    return Response({"Total Product":count_product},status=200)  
+            
 
 
     
