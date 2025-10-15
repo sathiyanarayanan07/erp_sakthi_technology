@@ -18,7 +18,8 @@ urlpatterns = [
     path("get_product_material/",views.get_product_materials,name="get_product_material"),
     path("add_product_options/",views.add_product_options,name="add_product_options"),
     path("get_product_options/",views.get_product_options,name="get_product_options"),
-    path("Schedule_add/",views.Schedule_add,name="Schedule_add")
+    path("Schedule_add/",views.Schedule_add,name="Schedule_add"),
+    path("Schedule_view/",views.Schedule_view,name="Schedule_view")
    
    
 
