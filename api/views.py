@@ -386,6 +386,26 @@ def Schedule_add(request):
                      "operator_name":operator_name,
                      "remark":remark},status=200)
 
+@api_view(['GET'])
+def Schedule_view(request):
+        view_detail =schedule.objects.all()
+
+        if not view_detail:
+            return Response({"msg":"data not found"},status=400)
+        view=[]
+        for show in view_detail:
+                view.append({
+                    "commitment_Date":show.commitment_date,
+                    "planning_date":show.planning_date,
+                    "date_of_delivery":show.date_of_delivery,
+                    "date_of_inspection":show.date_of_inspection,
+                    "process_date":show.process_date,
+                    "cycle_time":show.cycle_time,
+                    "operator_name":show.operator_name,
+                    "remark":show.remark
+                })
+        return Response(view)
+
 
 
 
