@@ -53,7 +53,8 @@ class Admin(models.Model):
 
     def __str__(self):
         return f"{self.username} -{self.password}"
-    
+
+#product 
 class product_details(models.Model):
 
     Company_name = models.CharField(max_length=30,null=True,blank=True)
@@ -88,7 +89,7 @@ class product_options(models.Model):
     def __str__(self):
         return f"{self.size} -{self.Thick}--{self.Grade}"
 
-
+#qa
 class plan_product(models.Model):
     product_detail=models.ForeignKey(product_details,on_delete=models.CASCADE,null=True,blank=True)
     program_no=models.CharField(max_length=30,null=True,blank=True)
@@ -107,7 +108,7 @@ class plan_product(models.Model):
         super().save(*args, **kwargs)
 
         if self.product_detail:
-            if all([
+            if any([
                 self.lm_co1, self.lm_co2, self.lm_co3,
                 self.fm_co1, self.fm_co2, self.fm_co3
             ]):
@@ -117,3 +118,18 @@ class plan_product(models.Model):
             self.product_detail.save()
             
    
+    
+#product
+class schedule(models.Model):
+    commitment_date = models.DateField(auto_now_add=True)
+    planning_date = models.DateField(auto_now_add=True)
+    date_of_inspection = models.DateField(auto_now_add=True)
+    date_of_delivery = models.DateField(auto_now_add=True)
+    process_date = models.DateField(auto_now_add=True)
+    cycle_time = models.TimeField(null=True, blank=True)
+    operator_name = models.CharField(max_length=100, null=True, blank=True)
+    remark = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"Schedule on {self.commitment_date}"
+
