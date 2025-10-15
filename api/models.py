@@ -121,18 +121,26 @@ class plan_product(models.Model):
    
     
 #product
+    
+#product
 class schedule(models.Model):
     commitment_date = models.DateField(auto_now_add=True)
     planning_date = models.DateField(auto_now_add=True)
     date_of_inspection = models.DateField(auto_now_add=True)
     date_of_delivery = models.DateField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"Schedule on {self.commitment_date}"
+    
+class schedule_process(models.Model):
     process_date = models.DateField(auto_now_add=True)
     cycle_time = models.TimeField(null=True, blank=True)
     operator_name = models.CharField(max_length=100, null=True, blank=True)
     remark = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
-        return f"Schedule on {self.commitment_date}"
+        return self.process_date
 
 #account
 class account_page(models.Model):
