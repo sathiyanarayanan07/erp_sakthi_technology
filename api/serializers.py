@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from . models import role1,product_details,QA,product,accountent,Admin,product_details,product_material,product_options,plan_product,schedule
+from . models import role1,product_details,QA,product,accountent,Admin,product_details,product_material,product_options,plan_product,schedule,account_page
 
 
 class role1Serializer(serializers.ModelSerializer):
