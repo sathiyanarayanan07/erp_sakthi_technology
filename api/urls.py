@@ -22,7 +22,10 @@ urlpatterns = [
     path("Schedule_view/",views.Schedule_view,name="Schedule_view"),
     path("product_qa_view/",views.product_qa_view,name="product_qa_view"),
     path("add_account/",views.add_account,name="create_account"),
-     path("account_view/",views.account_view,name="account_view")
+    path("account_view/",views.account_view,name="account_view"),
+    path("get_role_count/",views.get_role_count,name="get_role_count"),
+    path("total_product/",views.total_product,name="total_product")
+   
    
    
    
