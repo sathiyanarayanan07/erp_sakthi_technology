@@ -58,4 +58,10 @@ class scheduleSerializer(serializers.ModelSerializer):
         fields ="__all__"
 
 
+class account_pageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = account_page
+        fields ="__all__"
+
+
 
