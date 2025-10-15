@@ -495,6 +495,28 @@ def add_account(request):
         },status=200)
 
 
+@api_view(['GET'])
+def account_view(request):
+        view_detail =account_page.objects.all()
+
+        if not view_detail:
+            return Response({"msg":"data not found"},status=400)
+        view=[]
+        for show in view_detail:
+                view.append({
+                    "inv_on":show.inv_on,
+                    "Date":show.Date,
+                    "Amount":show.Amount,
+                    "mode_of_pay":show.mode_of_pay,
+                    "mat_inspected":show.mat_inspected,
+                    "mat_received":show.mat_received,
+                    "process_plan":show.process_plan,
+                    "process_approve":show.process_approve,
+                    "remark":show.remark
+                })
+        return Response(view)
+
+
     
 
 
