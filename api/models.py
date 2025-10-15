@@ -133,3 +133,19 @@ class schedule(models.Model):
     def __str__(self):
         return f"Schedule on {self.commitment_date}"
 
+#account
+class account_page(models.Model):
+    inv_on = models.CharField(max_length=100,null=True,blank =True)
+    Date = models.DateField(auto_now_add=True)
+    Amount = models.DecimalField(max_length=100,null=True,blank=True,decimal_places=2,max_digits=10,default=0)
+    mode_of_pay = models.CharField(max_length=20,null=True,blank=True)
+    mat_inspected =models.CharField(max_length=100,null=True,blank=True)
+    mat_received = models.CharField(max_length=100,null=True,blank=True)
+    process_plan = models.CharField(max_length=100,null=True,blank=True)
+    process_approve=models.CharField(max_length=100,null=True,blank=True)
+    remark = models.CharField(max_length=50,null=True,blank=True)
+
+    def __Str__(self):
+        return self.inv_on
+
+
