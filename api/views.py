@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from rest_framework.response import Response
-from .models import role1,QA,Admin,accountent,product,product_details,plan_product,product_material,product_options
+from .models import role1,QA,Admin,accountent,product,product_details,plan_product,product_material,product_details
+from .models import product_options,schedule
 from rest_framework import status
 from .serializers  import role1Serializer,product_detailsSerializer
 from rest_framework.decorators import api_view
@@ -98,8 +99,35 @@ def single_signup(request):
         "password":password,
         "role_type": role_type
     }, status=200 )   
-        
-            
+
+@api_view(['POST'])
+def logout(request):
+    username = request.data.get('username')
+    role_type = request.data.get("role_type")
+
+    if not username or not role_type:
+        return Response ({"msg":"username and roletype is not found"},status=200)
+    
+    if role_type == "role1":
+        role_1 = role1.objects.get(username=username)
+    elif role_type == "QA":
+        qa = QA.objects.get(username=username)
+    elif role_type == "product":
+        product_logout = product.objects.get(username=username)
+    elif role_type == "Admin":
+        admin = Admin.objects.get(username=username)
+    elif role_type == "accountent":
+        account = accountent.objects.get(username=username)
+    else:
+        return Response({"logout not successfully "},status=400)
+    return Response({
+    "msg":"logout successfully",
+    "username":username,
+    "role_type":role_type
+    })
+
+#product add in role 1
+
 @api_view(['POST'])
 def add_product_details(request):
     Company_name=request.data.get("Company_name")
@@ -245,6 +273,8 @@ def get_product_options(request):
     return Response(get)
 
 
+#qa views to qa page
+
 @api_view(['GET'])
 def qa_view(request):
     product_data=product_details.objects.all()
@@ -271,13 +301,12 @@ def add_plan_product(request):
     fm_co2 = request.data.get("fm_co2")
     fm_co3 = request.data.get("fm_co3")
 
-    # Fetch the product first
+    
     try:
         product = product_details.objects.get(id=product_id)
     except product_details.DoesNotExist:
         return Response({"msg": "Invalid product ID"}, status=404)
-
-    # Create plan_product
+    
     plan_data = plan_product.objects.create(
         product_detail=product,
         program_no=program_no,
@@ -288,8 +317,6 @@ def add_plan_product(request):
         fm_co2=fm_co2,
         fm_co3=fm_co3,
     )
-
-    # Status will be automatically updated in plan_product.save()
 
     return Response({
         "msg": "data added successfully",
@@ -321,3 +348,52 @@ def get_plan_products(request):
         })
     return Response(get)    
 
+
+# product page
+@api_view(['POST'])
+def Schedule_add(request):
+    commitment_date = request.data.get("commitment_Date")
+    planning_date = request.data.get("planning_date")
+    date_of_inspection = request.data.get("date_of_inspection")
+    date_of_delivery = request.data.get("date_of_delivery")
+    process_date= request.data.get("process_date")
+    cycle_time = request.data.get("cycle_time")
+    operator_name =request.data.get("operator_name")
+    remark= request.data.get("remark")
+
+
+    if not cycle_time or not operator_name or not remark:
+        return Response({"msg":"data not found"},status=400)
+    
+    schedule_add = schedule.objects.create(
+        commitment_date= commitment_date,
+        planning_date =planning_date,
+        date_of_inspection = date_of_inspection,
+        date_of_delivery= date_of_delivery,
+        process_date=process_date,
+        cycle_time =cycle_time,
+        operator_name= operator_name,
+        remark= remark
+    )
+
+    return Response({"msg":"product schedule create successfully",
+                     "commitment_Date":commitment_date,
+                     "planning_date":planning_date,
+                     "date_of_delivery":date_of_delivery,
+                     "date_of_inspection":date_of_inspection,
+                     "process_date":process_date,
+                     "cycle_time":cycle_time,
+                     "operator_name":operator_name,
+                     "remark":remark},status=200)
+
+
+
+
+    
+
+
+#admin page
+@api_view(['GET'])
+def get_all_details(request):
+    return Response("successfully get all details")
+            
