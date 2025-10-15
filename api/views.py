@@ -351,30 +351,22 @@ def get_plan_products(request):
 
 
 # product page
+
+# product page
 @api_view(['POST'])
 def Schedule_add(request):
     commitment_date = request.data.get("commitment_Date")
     planning_date = request.data.get("planning_date")
     date_of_inspection = request.data.get("date_of_inspection")
     date_of_delivery = request.data.get("date_of_delivery")
-    process_date= request.data.get("process_date")
-    cycle_time = request.data.get("cycle_time")
-    operator_name =request.data.get("operator_name")
-    remark= request.data.get("remark")
-
-
-    if not cycle_time or not operator_name or not remark:
-        return Response({"msg":"data not found"},status=400)
+    
     
     schedule_add = schedule.objects.create(
         commitment_date= commitment_date,
         planning_date =planning_date,
         date_of_inspection = date_of_inspection,
         date_of_delivery= date_of_delivery,
-        process_date=process_date,
-        cycle_time =cycle_time,
-        operator_name= operator_name,
-        remark= remark
+       
     )
 
     return Response({"msg":"product schedule create successfully",
@@ -382,10 +374,41 @@ def Schedule_add(request):
                      "planning_date":planning_date,
                      "date_of_delivery":date_of_delivery,
                      "date_of_inspection":date_of_inspection,
+                  
+                   },status=200)
+
+
+
+
+# product page
+@api_view(['POST'])
+def Schedule_process(request):
+    schedule_id=request.data.get("schedule_name")
+    process_date = request.data.get("process_date")
+    cycle_time = request.data.get("cycle_time")
+    operator_name = request.data.get("operator_name")
+    remark = request.data.get("remark")
+    
+    schedules=schedule.objects.get(id=schedule_id)
+    
+    schedule_add = schedule_process.objects.create(
+        schedules_id=schedules,
+        process_date= process_date,
+        cycle_time =cycle_time,
+        operator_name = operator_name,
+        remark= remark,
+       
+    )
+
+    return Response({"msg":"process schedule create successfully",
+                     "schedules_id":schedules,
                      "process_date":process_date,
                      "cycle_time":cycle_time,
                      "operator_name":operator_name,
-                     "remark":remark},status=200)
+                     "remark":remark,
+                  
+                   },status=200)
+
 
 @api_view(['GET'])
 def Schedule_view(request):
