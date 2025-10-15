@@ -134,6 +134,7 @@ class schedule(models.Model):
         return f"Schedule on {self.commitment_date}"
     
 class schedule_process(models.Model):
+    product_name = models.ForeignKey(schedule,on_delete=models.CASCADE,null=True,blank=True)
     process_date = models.DateField(auto_now_add=True)
     cycle_time = models.TimeField(null=True, blank=True)
     operator_name = models.CharField(max_length=100, null=True, blank=True)
