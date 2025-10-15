@@ -20,7 +20,9 @@ urlpatterns = [
     path("get_product_options/",views.get_product_options,name="get_product_options"),
     path("Schedule_add/",views.Schedule_add,name="Schedule_add"),
     path("Schedule_view/",views.Schedule_view,name="Schedule_view"),
-     path("product_qa_view/",views.product_qa_view,name="product_qa_view")
+    path("product_qa_view/",views.product_qa_view,name="product_qa_view"),
+    path("add_account/",views.add_account,name="create_account")
+   
    
    
 
