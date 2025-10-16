@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import role1,accountent,product,QA,Admin,schedule,product_details,plan_product,product_material
 from .models import product_options
+from .models import schedule_process
 
 # Register your models here.
 

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from .models import role1,QA,Admin,accountent,product,product_details,plan_product,product_material,product_details
-from .models import product_options,schedule
+from .models import product_options,schedule, schedule_process
 from rest_framework import status
 from .serializers  import role1Serializer,product_detailsSerializer
 from rest_framework.decorators import api_view
@@ -165,6 +165,11 @@ def add_product_details(request):
         "status":"pending"
     },status=200)
 
+@api_view(['GET'])
+def get_product_details(request):
+    product_data=product_details.objects.all()
+    serializer =product_detailsSerializer(product_data,many=True)
+    return Response(serializer.data)
 
 
     
@@ -355,7 +360,7 @@ def get_plan_products(request):
 # product page
 @api_view(['POST'])
 def Schedule_add(request):
-    commitment_date = request.data.get("commitment_Date")
+    commitment_date = request.data.get("commitment_date")
     planning_date = request.data.get("planning_date")
     date_of_inspection = request.data.get("date_of_inspection")
     date_of_delivery = request.data.get("date_of_delivery")
@@ -370,29 +375,37 @@ def Schedule_add(request):
     )
 
     return Response({"msg":"product schedule create successfully",
-                     "commitment_Date":commitment_date,
+                     "commitment_date":commitment_date,
                      "planning_date":planning_date,
                      "date_of_delivery":date_of_delivery,
                      "date_of_inspection":date_of_inspection,
                   
                    },status=200)
 
-
-
-
 # product page
 @api_view(['POST'])
 def Schedule_process(request):
+    product_id=request.data.get("product_plan")
     schedule_id=request.data.get("schedule_name")
     process_date = request.data.get("process_date")
     cycle_time = request.data.get("cycle_time")
     operator_name = request.data.get("operator_name")
     remark = request.data.get("remark")
     
-    schedules=schedule.objects.get(id=schedule_id)
+    try:
+        schedules = schedule.objects.get(id=schedule_id)
+    except schedule.DoesNotExist:
+        return Response({"error": "Schedule not found."},
+                        status=status.HTTP_404_NOT_FOUND)
+    try:
+        plan =plan_product.objects.get(id=product_id)
+    except plan_product.DoesNotExist:
+        return Response({"error": "plan_product not found."},
+                        status=status.HTTP_404_NOT_FOUND)
     
     schedule_add = schedule_process.objects.create(
-        schedules_id=schedules,
+        product_plan=plan,
+        schedule_name=schedules,
         process_date= process_date,
         cycle_time =cycle_time,
         operator_name = operator_name,
@@ -401,7 +414,8 @@ def Schedule_process(request):
     )
 
     return Response({"msg":"process schedule create successfully",
-                     "schedules_id":schedules,
+                     "plan_product":product_id,
+                     "schedules_name":schedules.id,
                      "process_date":process_date,
                      "cycle_time":cycle_time,
                      "operator_name":operator_name,
@@ -410,26 +424,128 @@ def Schedule_process(request):
                    },status=200)
 
 
+# @api_view(["POST"])
+# def Schedule_add(request):
+#     try:
+#         data = request.data
+#         schedule_add = schedule.objects.create(
+#             commitment_date=data.get("commitment_date"),
+#             planning_date=data.get("planning_date"),
+#             date_of_inspection=data.get("date_of_inspection"),
+#             date_of_delivery=data.get("date_of_delivery"),
+#         )
+#         return Response({
+#             "msg": "Product schedule created successfully",
+#             "schedule_id": schedule_add.id,
+#         }, status=status.HTTP_201_CREATED)
+#     except Exception as e:
+#         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# @api_view(["POST"])
+# def Schedule_process(request):
+#     try:
+#         schedule_id = request.data.get("schedule_name")
+#         if not schedule_id:
+#             return Response({"msg": "Missing schedule_name"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         schedule_obj = schedule.objects.get(id=schedule_id)
+
+#         process_add = schedule_process.objects.create(
+#             schedule_name=schedule_obj,   # ✅ correct field name
+#             process_date=request.data.get("process_date"),
+#             cycle_time=request.data.get("cycle_time"),
+#             operator_name=request.data.get("operator_name"),
+#             remark=request.data.get("remark"),
+#         )
+
+#         return Response({
+#             "msg": "Process schedule created successfully",
+#             "process_id": process_add.id,
+#         }, status=status.HTTP_201_CREATED)
+#     except schedule.DoesNotExist:
+#         return Response({"msg": "Invalid schedule ID"}, status=status.HTTP_404_NOT_FOUND)
+#     except Exception as e:
+#         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# @api_view(['GET'])
+# def Schedule_view(request):
+#     try:
+#         schedules = schedule.objects.all()
+
+#         if not schedules.exists():
+#             return Response({"msg": "No schedule data found"}, status=404)
+
+#         response_data = []
+#         for sch in schedules:
+#             # Fetch all related process records for this schedule
+#             processes = schedule_process.objects.filter(schedule_name=sch)
+
+#             # Build nested process data
+#             process_data = [
+#                 {
+#                     "process_date": p.process_date,
+#                     "cycle_time": p.cycle_time,
+#                     "operator_name": p.operator_name,
+#                     "remark": p.remark,
+#                 }
+#                 for p in processes
+#             ]
+
+#             # Add schedule + its processes
+#             response_data.append({
+#                 "id": sch.id,
+#                 "commitment_date": sch.commitment_date,
+#                 "planning_date": sch.planning_date,
+#                 "date_of_inspection": sch.date_of_inspection,
+#                 "date_of_delivery": sch.date_of_delivery,
+#                 "process_details": process_data,
+#             })
+
+#         return Response(response_data, status=200)
+
+#     except Exception as e:
+#         return Response({"error": str(e)}, status=500)
+
+
 @api_view(['GET'])
 def Schedule_view(request):
-        view_detail =schedule.objects.all()
+    schedules = schedule.objects.all()
 
-        if not view_detail:
-            return Response({"msg":"data not found"},status=400)
-        view=[]
-        for show in view_detail:
-                view.append({
-                    "commitment_Date":show.commitment_date,
-                    "planning_date":show.planning_date,
-                    "date_of_delivery":show.date_of_delivery,
-                    "date_of_inspection":show.date_of_inspection,
-                    "process_date":show.process_date,
-                    "cycle_time":show.cycle_time,
-                    "operator_name":show.operator_name,
-                    "remark":show.remark
-                })
-        return Response(view)
-    
+    if not schedules.exists():
+        return Response({"msg": "No schedule data found"}, status=400)
+
+    schedule_list = []
+
+    for sched in schedules:
+        # Fetch all related schedule_process for this schedule
+        processes = schedule_process.objects.filter(schedule_name=sched)
+
+        process_list = []
+        for proc in processes:
+            process_list.append({
+                "plan_product": proc.product_plan.id if proc.product_plan else None,
+                "process_date": proc.process_date,
+                "cycle_time": proc.cycle_time,
+                "operator_name": proc.operator_name,
+                "remark": proc.remark
+            })
+
+        schedule_list.append({
+            "schedule_id": sched.id,
+            "commitment_date": sched.commitment_date,
+            "planning_date": sched.planning_date,
+            "date_of_delivery": sched.date_of_delivery,
+            "date_of_inspection": sched.date_of_inspection,
+            "processes": process_list  
+        })
+
+    return Response({
+        "msg": "Schedule data retrieved successfully",
+        "schedules": schedule_list
+    }, status=200)
+
+
 @api_view(["GET"])
 def product_qa_view(request):
     prod_view = product_details.objects.all()
@@ -440,10 +556,20 @@ def product_qa_view(request):
     if not qa_view:
         return Response({"msg":"qa not found"},status=400)
     
+    schedule_view =schedule.objects.all()
+    if not schedule_view:
+        return Response({"data not found schedule_view"})
+   
+        
+    schedule_view_process = schedule_process.objects.all()
+    if not schedule_view_process :
+        return Response({"schedule_view_process not found"})
+
+
+    
     prod = []
     for ve in prod_view:
         prod.append({
-            "product_id":ve.id,
         "Company_name":ve.Company_name,
         "serial_number":ve.serial_number,
         "date":ve.date,
@@ -459,7 +585,6 @@ def product_qa_view(request):
     qa_details = []
     for qv in qa_view:
         qa_details.append({
-            "product_id": qv.product_detail.id if qv.product_detail else None,
             "program_no": qv.program_no,
             "lm_co1": qv.lm_co1,
             "lm_co2": qv.lm_co2,
@@ -467,13 +592,35 @@ def product_qa_view(request):
             "fm_co1": qv.fm_co1,
             "fm_co2": qv.fm_co2,
             "fm_co3": qv.fm_co3,
-             "status":qv.status
+            "status":qv.status
+        })
+
+    view=[]
+    for show in schedule_view:
+        view.append({
+                    "commitment_Date":show.commitment_date,
+                    "planning_date":show.planning_date,
+                    "date_of_delivery":show.date_of_delivery,
+                    "date_of_inspection":show.date_of_inspection,
+                
+                })
+    sdl=[]
+    for pro in schedule_view_process:
+        sdl.append({
+            "product_plan":pro.product_plan.id,
+            "schedule_name":pro.schedule_name.id,
+            "process_date":pro.process_date,
+            "cycle_time":pro.cycle_time,
+            "operator_name":pro.operator_name,
+            "remark":pro.remark
         })
 
     
     return Response({"msg":"all details view successfully",
                     "product":prod,
-                    "qa":qa_details
+                    "qa":qa_details,
+                    "Schedule_View":view,
+                    "Schedule process":sdl
                     })
 
 

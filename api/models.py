@@ -124,24 +124,32 @@ class plan_product(models.Model):
     
 #product
 class schedule(models.Model):
-    commitment_date = models.DateField(auto_now_add=True)
-    planning_date = models.DateField(auto_now_add=True)
-    date_of_inspection = models.DateField(auto_now_add=True)
-    date_of_delivery = models.DateField(auto_now_add=True)
+    commitment_date = models.DateField(auto_now_add=False,null=True, blank=True)
+    planning_date = models.DateField(auto_now_add=False,null=True, blank=True)
+    date_of_inspection = models.DateField(auto_now_add=False,null=True, blank=True)
+    date_of_delivery = models.DateField(auto_now_add=False,null=True, blank=True)
 
 
-    def __str__(self):
-        return f"Schedule on {self.commitment_date}"
-    
+#product_process  
 class schedule_process(models.Model):
-    schedule_name = models.ForeignKey(schedule,on_delete=models.CASCADE,null=True,blank=True)
-    process_date = models.DateField(auto_now_add=True)
+    product_plan =models.ForeignKey(plan_product,on_delete=models.CASCADE)
+    schedule_name=models.ForeignKey(schedule,on_delete=models.CASCADE,null=True,blank=True)
+    process_date = models.DateField(auto_now_add=False)
     cycle_time = models.TimeField(null=True, blank=True)
     operator_name = models.CharField(max_length=100, null=True, blank=True)
     remark = models.CharField(max_length=100, blank=True, null=True)
 
-    def __str__(self):
-        return self.process_date
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.product_plan:  
+            if all([self.schedule_name, self.process_date, self.cycle_time, self.operator_name, self.remark]):
+                self.product_plan.status = "complete"
+            else:
+                self.product_plan.status = "incomplete"
+
+            self.product_plan.save()
+
 
 #account
 class account_page(models.Model):
