@@ -27,7 +27,8 @@ urlpatterns = [
     path("account_view/",views.account_view,name="account_view"),
     path("get_role_count/",views.get_role_count,name="get_role_count"),
     path("total_product/",views.total_product,name="total_product"),
-    path("Schedule_process/",views.Schedule_process,name="Schedule_process")
+    path("Schedule_process/",views.Schedule_process,name="Schedule_process"),
+    path("get_all_logins/",views.get_all_logins,name="get_all_logins")
    
    
    
