@@ -163,7 +163,6 @@ class schedule(models.Model):
 
 #product_process  
 class schedule_process(models.Model):
-    product_id = models.ForeignKey(product_details,on_delete=models.CASCADE,null=True,blank=True)
     schedule_name=models.ForeignKey(schedule,on_delete=models.CASCADE,null=True,blank=True)
     process_date = models.DateField(auto_now_add=False)
     cycle_time = models.TimeField(null=True, blank=True)
