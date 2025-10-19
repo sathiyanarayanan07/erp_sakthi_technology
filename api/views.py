@@ -1,10 +1,13 @@
 from django.shortcuts import render
 from rest_framework.response import Response
 from .models import role1,QA,Admin,accountent,product,product_details,plan_product,product_material,product_details
-from .models import product_options,schedule, schedule_process
+from .models import product_options,schedule,account_page,schedule_process
 from rest_framework import status
 from .serializers  import role1Serializer,product_detailsSerializer
 from rest_framework.decorators import api_view
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
 
 # Create your views here.
 @api_view(['POST'])
@@ -41,6 +44,7 @@ def single_login(request):
     }, status=status.HTTP_200_OK)
 
 
+permission_classes([IsAuthenticated])
 @api_view(['GET'])
 def get_user_data(request):
     get_data =role1.objects.all()
@@ -58,7 +62,6 @@ def admin_single_signup(request):
     username =request.data.get("username")
     email = request.data.get("email")
     password = request.data.get("password")
-
     role_type =request.data.get("role_type")
 
 
@@ -101,6 +104,24 @@ def admin_single_signup(request):
         "role_type": role_type
     }, status=200 )   
 
+
+@api_view(['GET'])
+def get_all_logins(request):
+ 
+    role1_data = list(role1.objects.values('id', 'username', 'email', 'role_type'))
+    qa_data = list(QA.objects.values('id', 'username', 'email', 'role_type'))
+    product_data = list(product.objects.values('id', 'username', 'email', 'role_type'))
+    admin_data = list(Admin.objects.values('id', 'username', 'email', 'role_type'))
+    accountent_data = list(accountent.objects.values('id', 'username', 'email', 'role_type'))
+
+    all_data = role1_data + qa_data + product_data + admin_data + accountent_data
+
+    return Response({
+        "msg": "All login details fetched successfully",
+        "total_users": len(all_data),
+        "data": all_data
+    }, status=200)
+
 @api_view(['POST'])
 def logout(request):
     username = request.data.get('username')
@@ -138,7 +159,10 @@ def add_product_details(request):
     Customer_No=request.data.get("Customer_No")
     Customer_date=request.data.get("Customer_date")
     mobile =request.data.get("mobile")
-    status=request.data.get("status")
+    created_by_id =request.data.get("created_by")
+    role_obj =role1.objects.get(id=created_by_id)
+
+
 
     try:
         product_data=product_details.objects.create(
@@ -149,7 +173,7 @@ def add_product_details(request):
             Customer_No=Customer_No,
             Customer_date=Customer_date,
             mobile=mobile,
-            status="pending"
+            created_by=role_obj
         )
     except product_details.DoesNotExist:
         return Response({"msg":"invalid data"},status=status.HTTP_400_BAD_REQUEST)
@@ -162,14 +186,10 @@ def add_product_details(request):
         "Customer_No":Customer_No,
         "Customer_date":Customer_date,
         "mobile":mobile,
-        "status":"pending"
+        "created_by":product_data.created_by.id
+
     },status=200)
 
-@api_view(['GET'])
-def get_product_details(request):
-    product_data=product_details.objects.all()
-    serializer =product_detailsSerializer(product_data,many=True)
-    return Response(serializer.data)
 
 
     
@@ -246,6 +266,9 @@ def add_product_options(request):
     Drawing= request.data.get("Drawing")
     Test_Certificate= request.data.get("Test_Certificate")
 
+
+    
+
     try:
         product_material_instance = product_material.objects.get(id=product_id)
         product_options_data = product_options.objects.create(
@@ -306,6 +329,10 @@ def add_plan_product(request):
     fm_co1 = request.data.get("fm_co1")
     fm_co2 = request.data.get("fm_co2")
     fm_co3 = request.data.get("fm_co3")
+    created_by_id = request.data.get("created_by")
+
+
+    QA_obj = QA.objects.get(id= created_by_id)
 
     
     try:
@@ -322,6 +349,7 @@ def add_plan_product(request):
         fm_co1=fm_co1,
         fm_co2=fm_co2,
         fm_co3=fm_co3,
+        created_by=QA_obj
     )
 
     return Response({
@@ -334,7 +362,8 @@ def add_plan_product(request):
         "fm_co1": fm_co1,
         "fm_co2": fm_co2,
         "fm_co3": fm_co3,
-        "status": product.status
+        "status": product.status,
+        "created_by_id":plan_data.created_by.id
     }, status=200)
 
 @api_view(['GET'])
@@ -356,55 +385,64 @@ def get_plan_products(request):
 
 
 # product page
-
-# product page
 @api_view(['POST'])
 def Schedule_add(request):
+    product_id=request.data.get("product_plan")
     commitment_date = request.data.get("commitment_date")
     planning_date = request.data.get("planning_date")
     date_of_inspection = request.data.get("date_of_inspection")
     date_of_delivery = request.data.get("date_of_delivery")
+    created_by_id = request.data.get("created_by")
+
+    product_obj = product.objects.get(id=created_by_id)
+
+    plan_product_id =plan_product.objects.get(id=product_id)
     
     
     schedule_add = schedule.objects.create(
+        product_plan= plan_product_id,
         commitment_date= commitment_date,
         planning_date =planning_date,
         date_of_inspection = date_of_inspection,
         date_of_delivery= date_of_delivery,
+        created_by=product_obj
+
        
     )
 
     return Response({"msg":"product schedule create successfully",
-                     "commitment_date":commitment_date,
+                     "product_plan":plan_product_id.id,
+                     "commitment_Date":commitment_date,
                      "planning_date":planning_date,
                      "date_of_delivery":date_of_delivery,
                      "date_of_inspection":date_of_inspection,
+                     "created_by":schedule_add.created_by.id
                   
                    },status=200)
+
+
+
 
 # product page
 @api_view(['POST'])
 def Schedule_process(request):
-    product_id=request.data.get("product_plan")
+    product_id = request.data.get("product_id")
     schedule_id=request.data.get("schedule_name")
     process_date = request.data.get("process_date")
     cycle_time = request.data.get("cycle_time")
     operator_name = request.data.get("operator_name")
     remark = request.data.get("remark")
+
+    product_obj = product_details.objects.get(id=product_id)
     
     try:
         schedules = schedule.objects.get(id=schedule_id)
     except schedule.DoesNotExist:
         return Response({"error": "Schedule not found."},
                         status=status.HTTP_404_NOT_FOUND)
-    try:
-        plan =plan_product.objects.get(id=product_id)
-    except plan_product.DoesNotExist:
-        return Response({"error": "plan_product not found."},
-                        status=status.HTTP_404_NOT_FOUND)
     
     schedule_add = schedule_process.objects.create(
-        product_plan=plan,
+        product_id =product_obj,
         schedule_name=schedules,
         process_date= process_date,
         cycle_time =cycle_time,
@@ -412,9 +450,9 @@ def Schedule_process(request):
         remark= remark,
        
     )
-
+    
     return Response({"msg":"process schedule create successfully",
-                     "plan_product":product_id,
+                     "product_id":schedule_add.product_id.id,
                      "schedules_name":schedules.id,
                      "process_date":process_date,
                      "cycle_time":cycle_time,
@@ -424,167 +462,76 @@ def Schedule_process(request):
                    },status=200)
 
 
-# @api_view(["POST"])
-# def Schedule_add(request):
-#     try:
-#         data = request.data
-#         schedule_add = schedule.objects.create(
-#             commitment_date=data.get("commitment_date"),
-#             planning_date=data.get("planning_date"),
-#             date_of_inspection=data.get("date_of_inspection"),
-#             date_of_delivery=data.get("date_of_delivery"),
-#         )
-#         return Response({
-#             "msg": "Product schedule created successfully",
-#             "schedule_id": schedule_add.id,
-#         }, status=status.HTTP_201_CREATED)
-#     except Exception as e:
-#         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-# @api_view(["POST"])
-# def Schedule_process(request):
-#     try:
-#         schedule_id = request.data.get("schedule_name")
-#         if not schedule_id:
-#             return Response({"msg": "Missing schedule_name"}, status=status.HTTP_400_BAD_REQUEST)
-
-#         schedule_obj = schedule.objects.get(id=schedule_id)
-
-#         process_add = schedule_process.objects.create(
-#             schedule_name=schedule_obj,   # ✅ correct field name
-#             process_date=request.data.get("process_date"),
-#             cycle_time=request.data.get("cycle_time"),
-#             operator_name=request.data.get("operator_name"),
-#             remark=request.data.get("remark"),
-#         )
-
-#         return Response({
-#             "msg": "Process schedule created successfully",
-#             "process_id": process_add.id,
-#         }, status=status.HTTP_201_CREATED)
-#     except schedule.DoesNotExist:
-#         return Response({"msg": "Invalid schedule ID"}, status=status.HTTP_404_NOT_FOUND)
-#     except Exception as e:
-#         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-# @api_view(['GET'])
-# def Schedule_view(request):
-#     try:
-#         schedules = schedule.objects.all()
-
-#         if not schedules.exists():
-#             return Response({"msg": "No schedule data found"}, status=404)
-
-#         response_data = []
-#         for sch in schedules:
-#             # Fetch all related process records for this schedule
-#             processes = schedule_process.objects.filter(schedule_name=sch)
-
-#             # Build nested process data
-#             process_data = [
-#                 {
-#                     "process_date": p.process_date,
-#                     "cycle_time": p.cycle_time,
-#                     "operator_name": p.operator_name,
-#                     "remark": p.remark,
-#                 }
-#                 for p in processes
-#             ]
-
-#             # Add schedule + its processes
-#             response_data.append({
-#                 "id": sch.id,
-#                 "commitment_date": sch.commitment_date,
-#                 "planning_date": sch.planning_date,
-#                 "date_of_inspection": sch.date_of_inspection,
-#                 "date_of_delivery": sch.date_of_delivery,
-#                 "process_details": process_data,
-#             })
-
-#         return Response(response_data, status=200)
-
-#     except Exception as e:
-#         return Response({"error": str(e)}, status=500)
-
 
 @api_view(['GET'])
 def Schedule_view(request):
-    schedules = schedule.objects.all()
+    try:
+        schedules = schedule.objects.all()
 
-    if not schedules.exists():
-        return Response({"msg": "No schedule data found"}, status=400)
+        if not schedules.exists():
+            return Response({"msg": "No schedule data found"}, status=404)
 
-    schedule_list = []
+        response_data = []
+        for sch in schedules:
+            # Fetch all related process records for this schedule
+            processes = schedule_process.objects.filter(schedule_name=sch)
 
-    for sched in schedules:
-        # Fetch all related schedule_process for this schedule
-        processes = schedule_process.objects.filter(schedule_name=sched)
+            # Build nested process data
+            process_data = [
+                {
+                    "schedule_name":p.schedule_name.id,
+                    "process_date": p.process_date,
+                    "cycle_time": p.cycle_time,
+                    "operator_name": p.operator_name,
+                    "remark": p.remark,
+                }
+                for p in processes
+            ]
 
-        process_list = []
-        for proc in processes:
-            process_list.append({
-                "plan_product": proc.product_plan.id if proc.product_plan else None,
-                "process_date": proc.process_date,
-                "cycle_time": proc.cycle_time,
-                "operator_name": proc.operator_name,
-                "remark": proc.remark
+            # Add schedule + its processes
+            response_data.append({
+                "product_plan":sch.product_plan.id,
+                "commitment_date": sch.commitment_date,
+                "planning_date": sch.planning_date,
+                "date_of_inspection": sch.date_of_inspection,
+                "date_of_delivery": sch.date_of_delivery,
+                "process_details": process_data,
             })
 
-        schedule_list.append({
-            "schedule_id": sched.id,
-            "commitment_date": sched.commitment_date,
-            "planning_date": sched.planning_date,
-            "date_of_delivery": sched.date_of_delivery,
-            "date_of_inspection": sched.date_of_inspection,
-            "processes": process_list  
-        })
+        return Response(response_data, status=200)
 
-    return Response({
-        "msg": "Schedule data retrieved successfully",
-        "schedules": schedule_list
-    }, status=200)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import product_details, plan_product, schedule, schedule_process
 
 
 @api_view(["GET"])
 def product_qa_view(request):
     prod_view = product_details.objects.all()
-    if not prod_view:
-        return Response({"msg":"prod not found"},status=400)
-    
-    qa_view =plan_product.objects.all()
-    if not qa_view:
-        return Response({"msg":"qa not found"},status=400)
-    
-    schedule_view =schedule.objects.all()
-    if not schedule_view:
-        return Response({"data not found schedule_view"})
-   
-        
+    qa_view = plan_product.objects.all()
+    schedule_view = schedule.objects.all()
     schedule_view_process = schedule_process.objects.all()
-    if not schedule_view_process :
-        return Response({"schedule_view_process not found"})
 
 
-    
-    prod = []
-    for ve in prod_view:
-        prod.append({
-        "Company_name":ve.Company_name,
-        "serial_number":ve.serial_number,
-        "date":ve.date,
-        "Customer_name":ve.Customer_name,
-        "Customer_No":ve.Customer_No,
-        "Customer_date":ve.Customer_date,
-        "mobile":ve.mobile,
-        "status":ve.status
-            
+    prod = [
+        {
+            "Company_name": ve.Company_name,
+            "serial_number": ve.serial_number,
+            "date": ve.date,
+            "Customer_name": ve.Customer_name,
+            "Customer_No": ve.Customer_No,
+            "Customer_date": ve.Customer_date,
+            "mobile": ve.mobile,
+            "status": ve.status,
+        }
+        for ve in prod_view
+    ]
 
-        })
-
-    qa_details = []
-    for qv in qa_view:
-        qa_details.append({
+    qa_details = [
+        {
             "program_no": qv.program_no,
             "lm_co1": qv.lm_co1,
             "lm_co2": qv.lm_co2,
@@ -592,40 +539,50 @@ def product_qa_view(request):
             "fm_co1": qv.fm_co1,
             "fm_co2": qv.fm_co2,
             "fm_co3": qv.fm_co3,
-            "status":qv.status
-        })
+            "status": qv.status,
+        }
+        for qv in qa_view
+    ]
 
-    view=[]
-    for show in schedule_view:
-        view.append({
-                    "commitment_Date":show.commitment_date,
-                    "planning_date":show.planning_date,
-                    "date_of_delivery":show.date_of_delivery,
-                    "date_of_inspection":show.date_of_inspection,
-                
-                })
-    sdl=[]
-    for pro in schedule_view_process:
-        sdl.append({
-            "product_plan":pro.product_plan.id,
-            "schedule_name":pro.schedule_name.id,
-            "process_date":pro.process_date,
-            "cycle_time":pro.cycle_time,
-            "operator_name":pro.operator_name,
-            "remark":pro.remark
-        })
+    view = [
+        {
+            "product_plan": show.product_plan.id if show.product_plan else None,
+            "commitment_Date": show.commitment_date,
+            "planning_date": show.planning_date,
+            "date_of_delivery": show.date_of_delivery,
+            "date_of_inspection": show.date_of_inspection,
+        }
+        for show in schedule_view
+    ]
 
-    
-    return Response({"msg":"all details view successfully",
-                    "product":prod,
-                    "qa":qa_details,
-                    "Schedule_View":view,
-                    "Schedule process":sdl
-                    })
+    sdl = [
+        {
+            "product_id": pro.product_id.id if pro.product_id else None,
+            "schedule_name": pro.schedule_name.id if pro.schedule_name else None,
+            "process_date": pro.process_date,
+            "cycle_time": pro.cycle_time,
+            "operator_name": pro.operator_name,
+            "remark": pro.remark,
+            "status":pro.status
+        }
+        for pro in schedule_view_process
+    ]
 
+    return Response({
+        "msg": "All details viewed successfully",
+        "product": prod,
+        "qa": qa_details,
+        "schedule_view": view,
+        "schedule_process": sdl,
+    })
+
+
+
+#account
 
 @api_view(['POST'])
 def add_account(request):
+    schedule_processs_id=request.data.get("schedule_processs")
     inv_on = request.data.get("inv_on")
     Date = request.data.get("Date")
     Amount = request.data.get("Amount")
@@ -635,11 +592,16 @@ def add_account(request):
     process_plan = request.data.get("process_plan")
     process_approve = request.data.get("process_approve")
     remark = request.data.get("remark")
+    created_by_id= request.data.get("created_by")
 
     if not inv_on or not Date or not Amount or not mode_of_pay or not mat_inspected or not mat_received or  not process_plan or not process_approve or not remark:
         return Response({"msg":"data not found"})
+    schedule_obj = schedule_process.objects.get(id=schedule_processs_id)
+
+    acc_obj = accountent.objects.get(id =created_by_id)
     
     acc = account_page.objects.create(
+        schedule_processs=schedule_obj,
         inv_on=inv_on,
         Date=Date,
         Amount=Amount,
@@ -648,11 +610,13 @@ def add_account(request):
         mat_received=mat_received,
         process_plan=process_plan,
         process_approve=process_approve,
-        remark=remark
+        remark=remark,
+        created_by=acc_obj
 
     )
     return Response({
         "msg":"account page create successfully",
+        "schedule_processs":acc.schedule_processs.id,
         "inv_on":inv_on,
         "Date":Date,
         "Amount":Amount,
@@ -661,9 +625,9 @@ def add_account(request):
         "mat_received":mat_received,
         "process_plan":process_plan,
         "process_approve":process_approve,
-        "remark":remark
+        "remark":remark,
+        "created_by":acc.created_by.id
         },status=200)
-
 
 @api_view(['GET'])
 def account_view(request):
@@ -685,6 +649,7 @@ def account_view(request):
                     "remark":show.remark
                 })
         return Response(view)
+
 #admin page
 @api_view(['GET'])
 def get_role_count(request):
@@ -705,11 +670,145 @@ def total_product(request):
             
 
 
-    
-
-
-#admin page
 @api_view(['GET'])
-def get_all_details(request):
-    return Response("successfully get all details")
-            
+def over_all_details(request):
+    product_details_qs = product_details.objects.all()
+    product_options_qs = product_options.objects.all()
+    plan_product_qs = plan_product.objects.all()
+    schedule_qs = schedule.objects.all()
+    schedule_process_qs = schedule_process.objects.all()
+    account_page_qs = account_page.objects.all()
+    product_material_qs = product_material.objects.all()
+
+    product_details_list = [
+        {
+            "Company_name": pro.Company_name,
+            "serial_number": pro.serial_number,
+            "date": pro.date,
+            "Customer_name": pro.Customer_name,
+            "Customer_No": pro.Customer_No,
+            "Customer_date": pro.Customer_date,
+            "mobile": pro.mobile,
+            "created_by":pro.created_by.username,
+            "status":pro.status
+        }
+        for pro in product_details_qs
+    ]
+
+
+    product_material_list = [
+        {   "product_detail":mat.product_detail.id,
+            "material_Description": mat.material_Description,
+            "Quantity": mat.Quantity,
+            "Remarks": mat.Remarks
+        }
+        for mat in product_material_qs
+    ]
+    
+    product_options_list =[
+        {
+        "product_material":opt.product_material.id,
+        "size":opt.size,
+        "Thick":opt.Thick,
+        "Grade":opt.Grade,
+        "Drawing":opt.Drawing,
+        "Test_Certificate":opt.Test_Certificate
+        }
+        for opt in product_options_qs
+    ]
+
+    plan_product_list =[
+        {
+        "product_detail":plan.product_detail.id,
+        "program_no":plan.program_no,
+        "lm_co1":plan.lm_co1,
+        "lm_co2":plan.lm_co2,
+        "lm_co3":plan.lm_co3,
+        "fm_co1":plan.fm_co1,
+        "fm_co2":plan.fm_co2,
+        "fm_co3":plan.fm_co3,
+        "status":plan.status,
+        "created_by":plan.created_by.username
+
+        }
+        for plan in plan_product_qs
+        ]
+    schedule_list=[
+
+        {
+            "product_id":sch.id,
+            "product_plan":sch.product_plan.id,
+            "commitment_date":sch.commitment_date,
+            "planning_date":sch.planning_date,
+            "date_of_inspection":sch.date_of_inspection,
+            "date_of_delivery":sch.date_of_delivery,
+            "created_by":sch.created_by.username
+
+
+        }
+        for sch in schedule_qs
+    ]
+
+    schedule_process_list =[
+        {
+            "product_id":spro.id,
+            "schedule_name":spro.schedule_name.id,
+            "process_date":spro.process_date,
+            "cycle_time":spro.cycle_time,
+            "operator_name":spro.operator_name,
+            "remark":spro.remark,
+            "status":spro.status
+        }
+        for spro in schedule_process_qs
+
+    ]
+
+    account_page_list =[
+        {
+            "schedule_processs":acc.schedule_processs.id if acc.schedule_processs else None,
+            "inv_on":acc.inv_on,
+            "Date":acc.Date,
+            "Amount":acc.Amount,
+            "mode_of_pay":acc.mode_of_pay,
+            "mat_inspected":acc.mat_inspected,
+            "mat_received":acc.mat_received,
+            "process_plan":acc.process_plan,
+            "process_approve":acc.process_approve,
+            "remark":acc.remark,
+            "created_by":acc.created_by.username
+
+
+
+        }
+        for acc in account_page_qs
+
+    ]
+    response_data = {
+        "product_details": product_details_list,
+        "product_materials": product_material_list,
+        "product_options": product_options_list,
+        "plan_products": plan_product_list,
+        "schedules": schedule_list,
+        "schedule_processes": schedule_process_list,
+        "account_pages": account_page_list
+    }
+
+    return Response(response_data)
+
+
+@api_view(['GET'])
+def get_all_logins(request):
+ 
+    role1_data = list(role1.objects.values('id', 'username', 'email', 'role_type'))
+    qa_data = list(QA.objects.values('id', 'username', 'email', 'role_type'))
+    product_data = list(product.objects.values('id', 'username', 'email', 'role_type'))
+    admin_data = list(Admin.objects.values('id', 'username', 'email', 'role_type'))
+    accountent_data = list(accountent.objects.values('id', 'username', 'email', 'role_type'))
+
+    all_data = role1_data + qa_data + product_data + admin_data + accountent_data
+
+    return Response({
+        "msg": "All login details fetched successfully",
+        "total_users": len(all_data),
+        "data": all_data
+    }, status=200)
