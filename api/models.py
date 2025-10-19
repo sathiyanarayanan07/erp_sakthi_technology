@@ -9,7 +9,7 @@ class role1(models.Model):
     role_type = models.CharField(max_length=10,default="role1")
 
     def __str__(self):
-        return f"{self.username} -{self.password}"
+        return f"{self.username} -{self.password}--{self.id}"
     
 class QA(models.Model):
 
@@ -19,7 +19,7 @@ class QA(models.Model):
     role_type = models.CharField(max_length=10,default="QA")
 
     def __str__(self):
-        return f"{self.username} -{self.password}"
+        return f"{self.username} -{self.password}--{self.id}"
 
     
 class product(models.Model):
@@ -56,7 +56,6 @@ class Admin(models.Model):
 
 #product 
 class product_details(models.Model):
-
     Company_name = models.CharField(max_length=30,null=True,blank=True)
     serial_number = models.CharField(max_length=30,null=True,blank=True)
     date=models.DateField(auto_now_add=True)
@@ -64,10 +63,24 @@ class product_details(models.Model):
     Customer_No = models.CharField(max_length=30,null=True,blank=True)
     Customer_date = models.DateField(null=True,blank=True)
     mobile = models.CharField(max_length=30,null=True,blank=True)
-    status=models.CharField(max_length=30,null=True,blank=True)
+    status=models.CharField(max_length=30,null=True,blank=True,default="incomplete")
+    created_by = models.ForeignKey(role1,on_delete=models.CASCADE)
+
+    
+   
 
     def __str__(self):
         return f"{self.Company_name} -{self.serial_number}--{self.id}"
+    
+    def save(self,*args,**kwargs):
+        if not self.serial_number:
+            first_account = product_details.objects.order_by("-id").first()
+            if first_account and first_account.serial_number and str(first_account.serial_number).isdigit():
+                next_code =int(first_account.serial_number)+ 1
+                self.serial_number = str(next_code).zfill(4)
+            else:
+                self.serial_number ="1410"
+        super().save(*args, **kwargs)
     
 class product_material(models.Model):
     product_detail=models.ForeignKey(product_details,on_delete=models.CASCADE,null=True,blank=True)
@@ -100,9 +113,11 @@ class plan_product(models.Model):
     fm_co2=models.BooleanField(default=False)
     fm_co3=models.BooleanField(default=False)
     status = models.CharField(max_length=20,default="incomplete")
+    created_by = models.ForeignKey(QA,on_delete=models.CASCADE)
+
 
     def __str__(self):
-        return f"{self.program_no}"
+        return f"{self.program_no}-{self.id}"
     
 
     def save(self, *args, **kwargs):
@@ -117,42 +132,55 @@ class plan_product(models.Model):
             else:
                 self.product_detail.status = "incomplete"
             self.product_detail.save()
-            
-   
+
+ 
     
-#product
-    
+        
 #product
 class schedule(models.Model):
-    commitment_date = models.DateField(auto_now_add=False,null=True, blank=True)
-    planning_date = models.DateField(auto_now_add=False,null=True, blank=True)
-    date_of_inspection = models.DateField(auto_now_add=False,null=True, blank=True)
-    date_of_delivery = models.DateField(auto_now_add=False,null=True, blank=True)
-
-
-#product_process  
-class schedule_process(models.Model):
     product_plan =models.ForeignKey(plan_product,on_delete=models.CASCADE)
-    schedule_name=models.ForeignKey(schedule,on_delete=models.CASCADE,null=True,blank=True)
-    process_date = models.DateField(auto_now_add=False)
-    cycle_time = models.TimeField(null=True, blank=True)
-    operator_name = models.CharField(max_length=100, null=True, blank=True)
-    remark = models.CharField(max_length=100, blank=True, null=True)
+    commitment_date = models.DateField(auto_now_add=False)
+    planning_date = models.DateField(auto_now_add=False)
+    date_of_inspection = models.DateField(auto_now_add=False)
+    date_of_delivery = models.DateField(auto_now_add=False)
+    created_by = models.ForeignKey(product,on_delete=models.CASCADE)
+ 
 
+
+    def __str__(self):
+        return f"Schedule on {self.commitment_date}--{self.id}"
+    
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
         if self.product_plan:  
-            if all([self.schedule_name, self.process_date, self.cycle_time, self.operator_name, self.remark]):
+            if all([ self.commitment_date, self.planning_date, self.date_of_inspection, self.date_of_delivery]):
                 self.product_plan.status = "complete"
             else:
                 self.product_plan.status = "incomplete"
 
             self.product_plan.save()
 
+#product_process  
+class schedule_process(models.Model):
+    product_id = models.ForeignKey(product_details,on_delete=models.CASCADE,null=True,blank=True)
+    schedule_name=models.ForeignKey(schedule,on_delete=models.CASCADE,null=True,blank=True)
+    process_date = models.DateField(auto_now_add=False)
+    cycle_time = models.TimeField(null=True, blank=True)
+    operator_name = models.CharField(max_length=100, null=True, blank=True)
+    remark = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=100,null=True,blank=True,default="incomplete")
+   
 
-#account
+
+                
+
+
+
+
+    #account
 class account_page(models.Model):
+    schedule_processs=models.ForeignKey(schedule_process,on_delete=models.CASCADE,null=True,blank=True)
     inv_on = models.CharField(max_length=100,null=True,blank =True)
     Date = models.DateField(auto_now_add=True)
     Amount = models.DecimalField(max_length=100,null=True,blank=True,decimal_places=2,max_digits=10,default=0)
@@ -162,8 +190,21 @@ class account_page(models.Model):
     process_plan = models.CharField(max_length=100,null=True,blank=True)
     process_approve=models.CharField(max_length=100,null=True,blank=True)
     remark = models.CharField(max_length=50,null=True,blank=True)
+    created_by = models.ForeignKey(accountent,on_delete=models.CASCADE)
+    
 
     def __Str__(self):
         return self.inv_on
+        
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.schedule_processs:  
+            if all([ self.inv_on, self.Date, self.Amount, self.mode_of_pay,self.mat_inspected,self.mat_received,self.process_plan,self.process_approve,self.remark,self.created_by]):
+                self.schedule_processs.status = "complete"
+            else:
+                self.schedule_processs.status = "incomplete"
+
+            self.schedule_processs.save()
 
 
